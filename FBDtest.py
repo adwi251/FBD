@@ -6,8 +6,8 @@ from manim import *
 # change config for numberplane
 # default values for x-axis and y-axis range are [-7.11, 7,11] and [-4,4], respectively
 # this is, in my professional opinion, very dumb, so let's change that to [-10,10] for both
-config.frame_x_radius = 10.0
-config.frame_y_radius = 10.0
+config.frame_x_radius = 20.0
+config.frame_y_radius = 20.0
 
 # find the order of magnitude of some inserted value
 def orderMagnitude(n):
@@ -45,14 +45,6 @@ def scaleArrows(arr):
 # find the magnitude of a vector with 3 dimensions
 def pythag(vec,decimal = 2):
     return np.round(np.sqrt(vec[0]**2 + vec[1]**2 + vec[2]**2),decimal)
-
-# determine where to place text for arrows
-def textPlacement(vec):
-    if vec[0] < 0:
-        #return LEFT
-        return np.array([0.,1.,0.])
-    else:
-        return RIGHT
 
 
 
@@ -95,14 +87,14 @@ class FBD(Scene):
     def construct(self):
         # set up coordinate plane
         dot = Dot(ORIGIN)
-        numberplane = NumberPlane(x_length=5, y_length=5, background_line_style={"stroke_opacity": 0.0})
+        numberplane = NumberPlane(x_length=8, y_length=8, background_line_style={"stroke_opacity": 0.0})
         self.add(numberplane, dot)
 
         # add all the arrows to the diagram
         for i in range(numArrows):
             currArrow = arrows[i]
             
-            F = Arrow(ORIGIN, currArrow, buff=0)
+            F = Arrow(ORIGIN, currArrow, stroke_width=10, buff=0, max_stroke_width_to_length_ratio=10)
             self.add(F)
 
             # scale the arrow back up
@@ -112,4 +104,4 @@ class FBD(Scene):
             # get magnitude of vector
             arrowMag = pythag(currArrow)
 
-            self.add(MathTex(f"F_{{{i}}} = {arrowMag} \, N", font_size=32).next_to(F.get_end(), textPlacement(currArrow)))
+            self.add(MathTex(f"F_{{{i}}} = {arrowMag} \, N", font_size=48).next_to(F.get_end(), UP))
