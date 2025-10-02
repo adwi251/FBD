@@ -1,13 +1,128 @@
 import sys
 import numpy as np
 from manim import *
+#uv run manim checkhealth
 #manim -pqp ./Projects/FBDtest.py FBD "./Projects/FBDarrows.txt"
 
 # change config for numberplane
 # default values for x-axis and y-axis range are [-7.11, 7,11] and [-4,4], respectively
-# this is, in my professional opinion, very dumb, so let's change that to [-10,10] for both
-config.frame_x_radius = 10.0
-config.frame_y_radius = 10.0
+# this is, in my professional opinion, very dumb, so let's change that to [-20,20] for both
+config.frame_x_radius = 20.0
+config.frame_y_radius = 20.0
+
+
+# define class for collection of vectors
+class VecCollec:
+    # constructor for vector collection class
+    def __init__(self, arr):
+        self.arr = arr
+        self.numVecs = len(arr)
+        
+        # find the max x and y values
+        xMax = self.arr[0].vec[0]
+        yMax = self.arr[0].vec[1]
+
+        for i in range(1, self.numVecs):
+            if abs(self.arr[i].vec[0]) > xMax:
+                xMax = self.arr[i].vec[0]
+            if abs(self.arr[i].vec[1]) > yMax:
+                yMax = self.arr[i].vec[1]
+
+         # find the order of magnitude for the max
+        xMag = orderMagnitude(xMax)
+        yMag = orderMagnitude(yMax)
+
+        # prevents the scaling of values if the max value is a factor of 10 (10, 100, 1000, ...)
+        if xMag == xMax:
+            xMag /= 10
+        if yMag == yMax:
+            yMag /= 10
+
+        for i in range(self.numVecs):
+            for j in range(3):
+                if j == 0:
+                    arr[i].vec[j] = arr[i].vec[j]/xMag
+                elif j == 1:
+                    arr[i].vec[j] = arr[i].vec[j]/yMag
+                else:
+                    continue
+        
+        # add scale properties
+        self.xScale = xMag
+        self.yScale = yMag
+
+        # 
+
+        
+# define class for vectors
+class Vec:
+    # constructor for vector class
+    def __init__(self, vec=None, magnitude=None, angle=None):
+        self.vec = np.array(vec, dtype=float)       # x,y,z-components of the vector
+        self.magnitude = magnitude                  # magnitude of the vector, pythag(vec)
+        self.angle = angle                          # angle of the vector w.r.t +x-axis
+
+        # create a quadrant property to be assigned a value in the following block
+        self.quadrant = None
+
+        # check to see if magnitude is type none
+        if magnitude is None:
+            # find the magnitude
+            self.magnitude = pythag(self.vec, decimal=5)
+
+            # before calculating angle, check for x-values of 0
+            if self.vec[0] == 0:
+                if self.vec[1] > 0:
+                    self.angle = 90
+                elif self.vec[1] < 0:
+                    self.angle = 180
+                else:
+                    print(f"Arrow {self.vec} is not a vector. At least one component must be nonzero")
+                    sys.exit()
+            # if x-component is not zero
+            else:
+                self.angle = np.atan(self.vec[1]/self.vec[0])*(180/(np.pi))
+
+            # ADD QUADRANT
+            if self.vec[0] > 0.0 and self.vec[1] >= 0.0:
+                self.quadrant = 1
+            elif self.vec[0] <= 0.0 and self.vec[1] > 0.0:
+                self.quadrant = 2
+            elif self.vec[0] < 0.0 and self.vec[1] <= 0.0:
+                self.quadrant = 3
+            else:
+                self.quadrant = 4
+
+            # use the quadrant to modify the angle property
+            if self.quadrant == 2 or self.quadrant == 3:
+                self.angle += 180
+            elif self.quadrant == 4:
+                self.angle += 360
+        # if magnitude is not none, populate the vec value instead
+        else:
+            # NOTE: this assumes that z = 0
+            self.vec = np.array(self.magnitude*[np.cos(self.angle), np.sin(self.angle), 0], dtype=float)
+
+            # assume angle measurement is in relation to +x-axis and is in degrees
+            if (self.angle >= 0.0) and (self.angle < 90.0):
+                self.quadrant = 1
+            elif (self.angle >= 90.0) and (self.angle < 180.0):
+                self.quadrant = 2
+            elif (self.angle >= 180.0) and (self.angle < 270.0):
+                self.quadrant = 3
+            else:
+                self.quadrant = 4
+        
+        # create a text location property which, based on the quadrant the arrow is in, will place the name of the arrow accordingly
+        self.textLocation = np.array([.35,.35,0.])
+        if self.quadrant == 2:
+            self.textLocation[0] = -1*self.textLocation[0]
+        elif self.quadrant == 3:
+            self.textLocation = -1*self.textLocation
+        elif self.quadrant == 4:
+            self.textLocation[1] = -1*self.textLocation[1]
+
+
 
 # find the order of magnitude of some inserted value
 def orderMagnitude(n):
@@ -15,47 +130,12 @@ def orderMagnitude(n):
         return 0
     return 10 ** int(np.floor(np.log10(abs(n))))
 
-# scale the vectors and return the scales
-def scaleArrows(arr):
-    # find the max value for each coordinate
-    xMax = np.max(arr[:,0])
-    yMax = np.max(arr[:,1])
-
-    # find the order of magnitude for the max
-    xMag = orderMagnitude(xMax)
-    yMag = orderMagnitude(yMax)
-
-    # prevents the scaling of values if the max value is a factor of 10 (10, 100, 1000, ...)
-    if xMag == xMax:
-        xMag /= 10
-    if yMag == yMax:
-        yMag /= 10
-
-    for i in range(len(arr)):
-        for j in range(len(arr[i])):
-            if j == 0:
-                arr[i][j] = arr[i][j]/xMag
-            elif j == 1:
-                arr[i][j] = arr[i][j]/yMag
-            else:
-                continue
-
-    return xMag,yMag
-
 # find the magnitude of a vector with 3 dimensions
 def pythag(vec,decimal = 2):
     return np.round(np.sqrt(vec[0]**2 + vec[1]**2 + vec[2]**2),decimal)
 
-# determine where to place text for arrows
-def textPlacement(vec):
-    if vec[0] < 0:
-        #return LEFT
-        return np.array([0.,1.,0.])
-    else:
-        return RIGHT
 
-
-
+# read in arguments
 filePath = sys.argv[-1]
 with open(filePath, "r") as f:
     lines = f.read().splitlines()
@@ -76,18 +156,17 @@ for line in lines[1:]:
     elif len(currArrow) == 2:
         currArrow.append(0)
 
+    # if the arrow passed all the tests, add it to the vector class and append it to the arrows array
+    currArrow = Vec(vec=currArrow)
     arrows.append(currArrow)
 
+# add the arrows to the VecCollec class
+arrows = VecCollec(arr=arrows)
+
 #get the number of arrows to be displayed
-if (len(arrows)) != numArrows:
+if (arrows.numVecs) != numArrows:
     print(f"Actual number of arrows does not match with the first line of {filePath}")
     sys.exit()
-
-# convert the list of arrows into a numpy array
-arrows = np.array(arrows, dtype=float)
-
-# scale the arrows and return the scale
-xScale, yScale = scaleArrows(arrows)
 
 
 # can change the name of the class to anything
@@ -95,21 +174,30 @@ class FBD(Scene):
     def construct(self):
         # set up coordinate plane
         dot = Dot(ORIGIN)
-        numberplane = NumberPlane(x_length=5, y_length=5, background_line_style={"stroke_opacity": 0.0})
+        numberplane = NumberPlane(x_length=8, y_length=8, background_line_style={"stroke_opacity": 0.0})
         self.add(numberplane, dot)
 
+        # create a list to store the names of forces and their magnitudes in newtons
+        tableContent = []
+        
         # add all the arrows to the diagram
         for i in range(numArrows):
-            currArrow = arrows[i]
+            # pull current arrow from VecCollec instance
+            currArrow = (arrows.arr[i])
             
-            F = Arrow(ORIGIN, currArrow, buff=0)
+            # create arrow mobject from instance of Vec and add it to the scene
+            F = Arrow(ORIGIN, currArrow.vec, stroke_width=10, buff=0, max_stroke_width_to_length_ratio=10)
             self.add(F)
 
-            # scale the arrow back up
-            currArrow[0] = currArrow[0]*xScale
-            currArrow[1] = currArrow[1]*yScale
+            # add the information of the force to the list
+            tableContent.append([MathTex(f"F_{{{i}}}"), MathTex(f"{round(currArrow.magnitude,2)} \\, N")])
 
-            # get magnitude of vector
-            arrowMag = pythag(currArrow)
+            # add the name of the force to the end of the arrow
+            self.add(MathTex(f"F_{{{i}}}", font_size=48).next_to(F.get_end(), direction=currArrow.textLocation))
 
-            self.add(MathTex(f"F_{{{i}}} = {arrowMag} \, N", font_size=32).next_to(F.get_end(), textPlacement(currArrow)))
+        # add the list to the table and place it in the top-left corner
+        table = MobjectTable(tableContent, include_outer_lines=True)
+        table.to_corner(UL)
+        table.shift(DOWN*9)     # with the way the resolution of the print screen is defined, 
+                                # the table does not print in the top-left, so it must be shifted
+        self.add(table)
