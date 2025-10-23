@@ -1,8 +1,9 @@
 import sys
+import os
 import numpy as np
 from manim import *
 #uv run manim checkhealth
-#manim -pqp ./Projects/FBDtest.py FBD "./Projects/FBDarrows.txt"
+#manim -pqp "./Projects/FBDtest.py" FBD "./Projects/FBDarrows.txt"
 
 # change config for numberplane
 # default values for x-axis and y-axis range are [-7.11, 7,11] and [-4,4], respectively
@@ -135,8 +136,15 @@ def pythag(vec,decimal = 2):
     return np.round(np.sqrt(vec[0]**2 + vec[1]**2 + vec[2]**2),decimal)
 
 
-# read in arguments
-filePath = sys.argv[-1]
+# read in arguments (prefer env var to avoid passing arbitrary file paths to manim CLI)
+filePath = os.environ.get("FBD_ARROWS")
+if not filePath:
+    # fallback to last argv (preserve previous behavior)
+    if len(sys.argv) < 2:
+        print("No arrows file provided. Set FBD_ARROWS or pass the file path as an argument.")
+        sys.exit(1)
+    filePath = sys.argv[-1]
+
 with open(filePath, "r") as f:
     lines = f.read().splitlines()
 
@@ -201,3 +209,4 @@ class FBD(Scene):
         table.shift(DOWN*9)     # with the way the resolution of the print screen is defined, 
                                 # the table does not print in the top-left, so it must be shifted
         self.add(table)
+
