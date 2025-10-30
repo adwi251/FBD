@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FBD Web Editor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Free Body Diagram Arrow Editor</h1>
+        <form id="arrowForm">
+            <label for="arrows">Enter Arrows (format: x,y; x,y; ...):</label>
+            <textarea id="arrows" name="arrows" rows="4" cols="50" placeholder="1,2; -1,0; 0,3"></textarea>
+            <br>
+            <button type="submit">Submit Arrows</button>
+        </form>
+        <div id="responseMessage"></div>
+    </div>
+    <script src="{{ url_for('static', filename='js/editor.js') }}"></script>
+</body>
+</html>
