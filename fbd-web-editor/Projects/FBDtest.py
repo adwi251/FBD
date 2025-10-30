@@ -1,5 +1,9 @@
 import os
 
+'''python3 -m venv .venv
+source .venv/bin/activate
+python3 ./fbd-web-editor/server/app.py'''
+
 def load_arrows_from_file(file_path):
     if not os.path.exists(file_path):
         return []
