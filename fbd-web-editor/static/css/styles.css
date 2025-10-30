@@ -53,6 +53,24 @@ button:hover {
     padding: 0;
 }
 
+#responseMessage {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+#responseMessage.error {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+#responseMessage:not(.error) {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #c8e6c9;
+}
+
 .arrow-list li {
     background: #e2e2e2;
     margin: 5px 0;

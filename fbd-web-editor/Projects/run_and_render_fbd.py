@@ -46,10 +46,12 @@ def run_manim(path: Path = OUT_PATH):
         print("Neither 'manim-pqp' nor 'manim' is on PATH. Install Manim or adjust your PATH.")
         sys.exit(2)
 
+    script_dir = Path(__file__).resolve().parent
+    fbd_test_path = script_dir / "FBDtest.py"
     if manim_bin.endswith("manim"):
-        cmd = [manim_bin, "-pqp", "./Projects/FBDtest.py", "FBD"]
+        cmd = [manim_bin, "-pqp", str(fbd_test_path), "FBD"]
     else:
-        cmd = [manim_bin, "./Projects/FBDtest.py", "FBD"]
+        cmd = [manim_bin, str(fbd_test_path), "FBD"]
 
     print("Running:", " ".join(cmd))
     env = dict(**os.environ)
