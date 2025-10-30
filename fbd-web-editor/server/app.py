@@ -1,7 +1,8 @@
 from flask import Flask, request, jsonify, render_template
 from pathlib import Path
 
-app = Flask(__name__)
+TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
+app = Flask(__name__, template_folder=str(TEMPLATES_DIR))
 FBDARROWS_PATH = Path(__file__).resolve().parent.parent / "Projects" / "FBDarrows.txt"
 
 @app.route('/')
