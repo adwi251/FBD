@@ -29,9 +29,16 @@ def index():
 def get_arrows():
     if FBDARROWS_PATH.exists():
         with open(FBDARROWS_PATH, 'r') as f:
-            arrows = f.readlines()
-        return jsonify({'arrows': [line.strip() for line in arrows]})
-    return jsonify({'arrows': []})
+            lines = f.read().splitlines()
+        if len(lines) >= 2 and not lines[1].lstrip().startswith('['):
+            # new format: first line = count, second = format, rest = arrows
+            fmt = lines[1].strip()
+            arrows = [line.strip() for line in lines[2:]]
+        else:
+            fmt = None
+            arrows = [line.strip() for line in lines[1:]]
+        return jsonify({'count': int(lines[0]) if lines else 0, 'format': fmt, 'arrows': arrows})
+    return jsonify({'count': 0, 'format': None, 'arrows': []})
 
 @app.route('/arrows', methods=['POST'])
 def update_arrows():
@@ -51,6 +58,8 @@ def update_arrows():
         # Save arrows to file
         with open(FBDARROWS_PATH, 'w') as f:
             f.write(f"{len(arrows)}\n")
+            fmt = data.get('format', '') or ''   # empty string if not provided
+            f.write(f"{fmt}\n")
             for arrow in arrows:
                 f.write(json.dumps(arrow) + '\n')
 
