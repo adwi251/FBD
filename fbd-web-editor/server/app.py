@@ -1,12 +1,9 @@
-from flask import Flask, request, jsonify, render_template, send_file, abort, url_for
+from flask import Flask, request, jsonify, render_template
 from pathlib import Path
 import json
 import subprocess
 import sys
 
-# Root paths
-REPO_ROOT = Path(__file__).resolve().parents[3]  # /home/caleb/CS498/manimations
-MEDIA_ROOT = REPO_ROOT / "media"
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
@@ -29,16 +26,9 @@ def index():
 def get_arrows():
     if FBDARROWS_PATH.exists():
         with open(FBDARROWS_PATH, 'r') as f:
-            lines = f.read().splitlines()
-        if len(lines) >= 2 and not lines[1].lstrip().startswith('['):
-            # new format: first line = count, second = format, rest = arrows
-            fmt = lines[1].strip()
-            arrows = [line.strip() for line in lines[2:]]
-        else:
-            fmt = None
-            arrows = [line.strip() for line in lines[1:]]
-        return jsonify({'count': int(lines[0]) if lines else 0, 'format': fmt, 'arrows': arrows})
-    return jsonify({'count': 0, 'format': None, 'arrows': []})
+            arrows = f.readlines()
+        return jsonify({'arrows': [line.strip() for line in arrows]})
+    return jsonify({'arrows': []})
 
 @app.route('/arrows', methods=['POST'])
 def update_arrows():
@@ -58,8 +48,6 @@ def update_arrows():
         # Save arrows to file
         with open(FBDARROWS_PATH, 'w') as f:
             f.write(f"{len(arrows)}\n")
-            fmt = data.get('format', '') or ''   # empty string if not provided
-            f.write(f"{fmt}\n")
             for arrow in arrows:
                 f.write(json.dumps(arrow) + '\n')
 
@@ -83,8 +71,9 @@ def update_arrows():
             )
 
             # Locate the most recent rendered image for the scene.
+            repo_root = Path(__file__).resolve().parents[3]
             scene_module = (RENDER_SCRIPT.parent / "FBDtest.py").stem
-            images_dir = MEDIA_ROOT / "images" / scene_module
+            images_dir = repo_root / "media" / "images" / scene_module
             rendered_file = None
             if images_dir.exists() and images_dir.is_dir():
                 files = [p for p in images_dir.iterdir() if p.is_file()]
@@ -99,17 +88,7 @@ def update_arrows():
                 'stderr': proc.stderr,
             }
             if rendered_file:
-                # Convert filesystem path to web URL
-                try:
-                    scene_module = RENDER_SCRIPT.parent / "FBDtest.py"
-                    rel_path = rendered_file.relative_to(MEDIA_ROOT / "images")
-                    # Log resolved paths for debugging
-                    app.logger.info(f"images_dir={MEDIA_ROOT / 'images' / scene_module}, rendered_file={rendered_file}, rel_path={rel_path}")
-                    # Return a relative URL (no host) so clients load from the same origin
-                    resp['rendered_image_url'] = url_for('rendered_image', subpath=str(rel_path))
-                except Exception as e:
-                    app.logger.error(f"Error generating rendered image URL: {e}")
-                    resp['rendered_image'] = str(rendered_file) #fallback to path
+                resp['rendered_image'] = str(rendered_file)
 
             # If the renderer failed, return 500 so client knows there was an error during render.
             status = 200 if proc.returncode == 0 else 500
@@ -125,21 +104,6 @@ def update_arrows():
     except Exception as e:
         app.logger.error(f"Error updating arrows: {str(e)}")
         return jsonify({'error': 'Server error while processing arrows'}), 500
-    
-@app.route('/rendered/<path:subpath>')
-def rendered_image(subpath):
-    """serve rendered images from the media directory"""
-    images_root = MEDIA_ROOT / "images"
-    target = images_root / subpath
-    try:
-        target = target.resolve()
-        if not str(target).startswith(str(images_root.resolve())):
-            abort(404)
-        if not target.exists() or not target.is_file():
-            abort(404)
-        return send_file(str(target))
-    except Exception:
-        abort(404)
 
 if __name__ == '__main__':
     app.run(debug=True)

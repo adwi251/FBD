@@ -4,8 +4,6 @@ document.addEventListener("DOMContentLoaded", function() {
     const form = document.getElementById("arrowForm");
     const arrowInput = document.getElementById("arrows");
     const responseDiv = document.getElementById("responseMessage");
-    const loadingIndicator = document.getElementById("loadingIndicator");
-    const previewContainer = document.getElementById("previewContainer");
 
     function parseArrows(input) {
         // Remove whitespace and split by semicolon
@@ -27,23 +25,9 @@ document.addEventListener("DOMContentLoaded", function() {
         return arrows;
     }
 
-    function updatePreview(imageUrl) {
-        //clear existing preview
-        previewContainer.innerHTML = "";
-
-        //create and add new image
-        const img = document.createElement("img");
-        img.src = imageUrl;
-        img.style.maxWidth = '100%';
-        img.alt = 'Free Body Diagram';
-        previewContainer.appendChild(img);
-    }
-
     form.addEventListener("submit", function(event) {
         event.preventDefault();
         responseDiv.textContent = "Processing...";
-        loadingIndicator.style.display = 'block';
-        previewContainer.style.opacity = '0.5';
         
         try {
             const arrows = parseArrows(arrowInput.value);
@@ -57,30 +41,18 @@ document.addEventListener("DOMContentLoaded", function() {
             })
             .then(response => response.json())
             .then(data => {
-                loadingIndicator.style.display = 'none';
-                previewContainer.style.opacity = '1';
-
-
                 responseDiv.textContent = data.message || "Arrows updated successfully!";
                 if (data.error) {
                     responseDiv.classList.add("error");
                 } else {
                     responseDiv.classList.remove("error");
-                    // Show new image if available
-                    if (data.rendered_image_url) {
-                        updatePreview(data.rendered_image_url);
-                    }
                 }
             })
             .catch(error => {
-                loadingIndicator.style.display = 'none';
-                previewContainer.style.opacity = '1';
                 responseDiv.textContent = "Network error: " + error.message;
                 responseDiv.classList.add("error");
             });
         } catch (error) {
-            loadingIndicator.style.display = 'none';
-            previewContainer.style.opacity = '1';
             responseDiv.textContent = "Input error: " + error.message;
             responseDiv.classList.add("error");
             return;

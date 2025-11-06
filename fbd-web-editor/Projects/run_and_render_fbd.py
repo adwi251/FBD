@@ -31,30 +31,64 @@ def parse_arrows_arg(s: str):
     return arrows
 
 
-def write_arrows_file(arrows, path: Path = OUT_PATH, fmt: str = ""):
+def write_arrows_file(arrows, path: Path = OUT_PATH):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         f.write(str(len(arrows)) + "\n")
-        f.write(str(fmt) + "\n")
         for a in arrows:
             f.write(str([float(a[0]), float(a[1]), float(a[2])]) + "\n")
     print(f"Wrote {len(arrows)} arrows to {path}")
 
 
 def run_manim(path: Path = OUT_PATH):
+    """Run Manim to render the FBD scene.
+
+    Prefer invoking Manim as a module using the same Python interpreter that's
+    running this script (avoids relying on PATH entry-point). If that fails,
+    fall back to looking for `manim-pqp` or `manim` on PATH.
+    """
+    script_dir = Path(__file__).resolve().parent
+    fbd_test_path = script_dir / "FBDtest.py"
+
+    # Preferred method: run as a module with the current Python interpreter.
+    try:
+        # Quick check to see if `manim` can be invoked as a module from this
+        # interpreter without starting a full render (use --version which is
+        # quick and non-destructive).
+        check = subprocess.run([sys.executable, "-m", "manim", "--version"], capture_output=True, text=True)
+        if check.returncode == 0:
+            cmd = [sys.executable, "-m", "manim", "-pqp", str(fbd_test_path), "FBD"]
+            print("Running (module):", " ".join(cmd))
+            env = dict(**os.environ)
+            env["FBD_ARROWS"] = str(path)
+            try:
+                subprocess.check_call(cmd, env=env)
+                return
+            except subprocess.CalledProcessError as e:
+                print("manim (module) returned non-zero exit code:", e.returncode)
+                sys.exit(e.returncode)
+            except PermissionError as e:
+                print(f"Permission error when trying to run manim as module: {e}")
+                sys.exit(3)
+    except FileNotFoundError:
+        # Interpreter doesn't provide a manim module entry point; fall through
+        pass
+    except Exception:
+        # Any other problem with module invocation -> fall back to CLI lookup.
+        pass
+
+    # Fallback: try the manim CLI entry-points on PATH.
     manim_bin = shutil.which("manim-pqp") or shutil.which("manim")
     if manim_bin is None:
         print("Neither 'manim-pqp' nor 'manim' is on PATH. Install Manim or adjust your PATH.")
         sys.exit(2)
 
-    script_dir = Path(__file__).resolve().parent
-    fbd_test_path = script_dir / "FBDtest.py"
     if manim_bin.endswith("manim"):
         cmd = [manim_bin, "-pqp", str(fbd_test_path), "FBD"]
     else:
         cmd = [manim_bin, str(fbd_test_path), "FBD"]
 
-    print("Running:", " ".join(cmd))
+    print("Running (cli):", " ".join(cmd))
     env = dict(**os.environ)
     env["FBD_ARROWS"] = str(path)
 
@@ -74,7 +108,6 @@ def run_manim(path: Path = OUT_PATH):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--arrows", type=str, help="Semicolon-separated vectors, e.g. '1,2; -1,0; 0,3'")
-    parser.add_argument("--format", type=str, default="", help="Optional format flag written to second line")
     parser.add_argument("--no-run", action="store_true", help="Do not invoke manim-pqp; only write the arrows file")
     args = parser.parse_args(argv)
 
@@ -88,7 +121,7 @@ def main(argv=None):
         print("This script is intended to be run from the web interface. Please use the web application to modify arrows.")
         sys.exit(1)
 
-    write_arrows_file(arrows, OUT_PATH, fmt=args.format)
+    write_arrows_file(arrows, OUT_PATH)
 
     if not args.no_run:
         run_manim(OUT_PATH)
