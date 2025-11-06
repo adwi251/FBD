@@ -3,7 +3,11 @@ import os
 import numpy as np
 from manim import *
 #uv run manim checkhealth
-#manim -pqp "./Projects/FBDtest.py" FBD "./Projects/FBDarrows.txt"
+
+#uv run python3 ./fbd-web-editor/server/app.py
+#or
+#source .venv/bin/activate
+#python3 ./fbd-web-editor/server/app.py
 
 # change config for numberplane
 # default values for x-axis and y-axis range are [-7.11, 7,11] and [-4,4], respectively
@@ -148,13 +152,13 @@ if not filePath:
 with open(filePath, "r") as f:
     lines = f.read().splitlines()
 
-# first line is the number of arrows
-# NOTE: idk if this is is needed, I'm just keeping it in case
+# first line is the number of arrows, second line is the format of the arrows
 numArrows = int(lines[0])
+arrowFormat = int(lines[1])
 
 # add the rest of the arrows to a list
 arrows = []
-for line in lines[1:]:
+for line in lines[2:]:
     currArrow = eval(line)
     # verify that there are at least two elements of the arrow list (corresponding to the x and y coords)
     if len(currArrow) < 2:
@@ -165,7 +169,10 @@ for line in lines[1:]:
         currArrow.append(0)
 
     # if the arrow passed all the tests, add it to the vector class and append it to the arrows array
-    currArrow = Vec(vec=currArrow)
+    if arrowFormat == 0:
+        currArrow = Vec(vec=currArrow)
+    else:
+        currArrow = Vec(magnitude=currArrow[0], angle=currArrow[1])
     arrows.append(currArrow)
 
 # add the arrows to the VecCollec class
