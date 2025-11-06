@@ -71,6 +71,32 @@ button:hover {
     border: 1px solid #c8e6c9;
 }
 
+#imagePreview {
+    margin-top: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#loadingIndicator{
+    text-align: center;
+    padding: 10px;
+    color: #666;
+    font-style: italic;
+}
+
+#previewContainer {
+    transition: opacity 0.3s ease;
+    text-align: center;
+}
+
+#previewContainer img {
+    max-width: 100%;
+    height: auto;
+    margin: 10px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 .arrow-list li {
     background: #e2e2e2;
     margin: 5px 0;
