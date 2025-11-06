@@ -31,10 +31,11 @@ def parse_arrows_arg(s: str):
     return arrows
 
 
-def write_arrows_file(arrows, path: Path = OUT_PATH):
+def write_arrows_file(arrows, path: Path = OUT_PATH, fmt: str = ""):
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w") as f:
         f.write(str(len(arrows)) + "\n")
+        f.write(str(fmt) + "\n")
         for a in arrows:
             f.write(str([float(a[0]), float(a[1]), float(a[2])]) + "\n")
     print(f"Wrote {len(arrows)} arrows to {path}")
@@ -49,7 +50,7 @@ def run_manim(path: Path = OUT_PATH):
     script_dir = Path(__file__).resolve().parent
     fbd_test_path = script_dir / "FBDtest.py"
     if manim_bin.endswith("manim"):
-        cmd = [manim_bin, "-qm", str(fbd_test_path), "FBD"]
+        cmd = [manim_bin, "-pqp", str(fbd_test_path), "FBD"]
     else:
         cmd = [manim_bin, str(fbd_test_path), "FBD"]
 
@@ -73,6 +74,7 @@ def run_manim(path: Path = OUT_PATH):
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--arrows", type=str, help="Semicolon-separated vectors, e.g. '1,2; -1,0; 0,3'")
+    parser.add_argument("--format", type=str, default="", help="Optional format flag written to second line")
     parser.add_argument("--no-run", action="store_true", help="Do not invoke manim-pqp; only write the arrows file")
     args = parser.parse_args(argv)
 
@@ -86,7 +88,7 @@ def main(argv=None):
         print("This script is intended to be run from the web interface. Please use the web application to modify arrows.")
         sys.exit(1)
 
-    write_arrows_file(arrows, OUT_PATH)
+    write_arrows_file(arrows, OUT_PATH, fmt=args.format)
 
     if not args.no_run:
         run_manim(OUT_PATH)
