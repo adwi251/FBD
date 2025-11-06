@@ -103,7 +103,10 @@ def update_arrows():
                 try:
                     scene_module = RENDER_SCRIPT.parent / "FBDtest.py"
                     rel_path = rendered_file.relative_to(MEDIA_ROOT / "images")
-                    resp['rendered_image_url'] = url_for('rendered_image', subpath=str(rel_path), _external=True)
+                    # Log resolved paths for debugging
+                    app.logger.info(f"images_dir={MEDIA_ROOT / 'images' / scene_module}, rendered_file={rendered_file}, rel_path={rel_path}")
+                    # Return a relative URL (no host) so clients load from the same origin
+                    resp['rendered_image_url'] = url_for('rendered_image', subpath=str(rel_path))
                 except Exception as e:
                     app.logger.error(f"Error generating rendered image URL: {e}")
                     resp['rendered_image'] = str(rendered_file) #fallback to path
