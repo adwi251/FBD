@@ -49,7 +49,7 @@ def run_manim(path: Path = OUT_PATH):
     script_dir = Path(__file__).resolve().parent
     fbd_test_path = script_dir / "FBDtest.py"
     if manim_bin.endswith("manim"):
-        cmd = [manim_bin, "-pqp", str(fbd_test_path), "FBD"]
+        cmd = [manim_bin, "-qm", str(fbd_test_path), "FBD"]
     else:
         cmd = [manim_bin, str(fbd_test_path), "FBD"]
 
