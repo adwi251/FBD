@@ -41,54 +41,19 @@ def write_arrows_file(arrows, path: Path = OUT_PATH):
 
 
 def run_manim(path: Path = OUT_PATH):
-    """Run Manim to render the FBD scene.
-
-    Prefer invoking Manim as a module using the same Python interpreter that's
-    running this script (avoids relying on PATH entry-point). If that fails,
-    fall back to looking for `manim-pqp` or `manim` on PATH.
-    """
-    script_dir = Path(__file__).resolve().parent
-    fbd_test_path = script_dir / "FBDtest.py"
-
-    # Preferred method: run as a module with the current Python interpreter.
-    try:
-        # Quick check to see if `manim` can be invoked as a module from this
-        # interpreter without starting a full render (use --version which is
-        # quick and non-destructive).
-        check = subprocess.run([sys.executable, "-m", "manim", "--version"], capture_output=True, text=True)
-        if check.returncode == 0:
-            cmd = [sys.executable, "-m", "manim", "-pqp", str(fbd_test_path), "FBD"]
-            print("Running (module):", " ".join(cmd))
-            env = dict(**os.environ)
-            env["FBD_ARROWS"] = str(path)
-            try:
-                subprocess.check_call(cmd, env=env)
-                return
-            except subprocess.CalledProcessError as e:
-                print("manim (module) returned non-zero exit code:", e.returncode)
-                sys.exit(e.returncode)
-            except PermissionError as e:
-                print(f"Permission error when trying to run manim as module: {e}")
-                sys.exit(3)
-    except FileNotFoundError:
-        # Interpreter doesn't provide a manim module entry point; fall through
-        pass
-    except Exception:
-        # Any other problem with module invocation -> fall back to CLI lookup.
-        pass
-
-    # Fallback: try the manim CLI entry-points on PATH.
     manim_bin = shutil.which("manim-pqp") or shutil.which("manim")
     if manim_bin is None:
         print("Neither 'manim-pqp' nor 'manim' is on PATH. Install Manim or adjust your PATH.")
         sys.exit(2)
 
+    script_dir = Path(__file__).resolve().parent
+    fbd_test_path = script_dir / "FBDtest.py"
     if manim_bin.endswith("manim"):
-        cmd = [manim_bin, "-pqp", str(fbd_test_path), "FBD"]
+        cmd = [manim_bin, "-qp", str(fbd_test_path), "FBD"]
     else:
         cmd = [manim_bin, str(fbd_test_path), "FBD"]
 
-    print("Running (cli):", " ".join(cmd))
+    print("Running:", " ".join(cmd))
     env = dict(**os.environ)
     env["FBD_ARROWS"] = str(path)
 

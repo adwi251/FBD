@@ -28,6 +28,8 @@ document.addEventListener("DOMContentLoaded", function() {
     form.addEventListener("submit", function(event) {
         event.preventDefault();
         responseDiv.textContent = "Processing...";
+        const responseImg = document.getElementById("renderedImage");
+        responseImg.style.display = "none";
         
         try {
             const arrows = parseArrows(arrowInput.value);
@@ -46,6 +48,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     responseDiv.classList.add("error");
                 } else {
                     responseDiv.classList.remove("error");
+                    // Display the rendered image if available
+                    if (data.rendered_image) {
+                        responseImg.src = "/image/" + data.rendered_image;
+                        responseImg.style.display = "block";
+                    }
                 }
             })
             .catch(error => {

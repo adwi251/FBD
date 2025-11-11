@@ -1,12 +1,14 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, send_file
 from pathlib import Path
 import json
 import subprocess
 import sys
+import mimetypes
 
 
 TEMPLATES_DIR = Path(__file__).resolve().parent.parent / "templates"
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+MEDIA_DIR = Path(__file__).resolve().parents[3] / "media"
 
 app = Flask(__name__, template_folder=str(TEMPLATES_DIR), static_folder=str(STATIC_DIR))
 FBDARROWS_PATH = Path(__file__).resolve().parent.parent / "Projects" / "FBDarrows.txt"
@@ -21,6 +23,21 @@ def validate_arrow(arrow):
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/image/<path:filename>')
+def serve_image(filename):
+    """Serve images from the media directory."""
+    try:
+        file_path = MEDIA_DIR / filename
+        # Security: ensure the requested path is within MEDIA_DIR
+        if not file_path.resolve().is_relative_to(MEDIA_DIR.resolve()):
+            return jsonify({'error': 'Invalid path'}), 403
+        if not file_path.exists():
+            return jsonify({'error': 'File not found'}), 404
+        return send_file(file_path, mimetype='image/png')
+    except Exception as e:
+        app.logger.error(f"Error serving image: {e}")
+        return jsonify({'error': 'Error serving image'}), 500
 
 @app.route('/arrows', methods=['GET'])
 def get_arrows():
@@ -88,7 +105,12 @@ def update_arrows():
                 'stderr': proc.stderr,
             }
             if rendered_file:
-                resp['rendered_image'] = str(rendered_file)
+                # Convert absolute path to relative path from MEDIA_DIR for serving
+                try:
+                    rel_path = rendered_file.relative_to(MEDIA_DIR)
+                    resp['rendered_image'] = str(rel_path)
+                except ValueError:
+                    resp['rendered_image'] = str(rendered_file)
 
             # If the renderer failed, return 500 so client knows there was an error during render.
             status = 200 if proc.returncode == 0 else 500
