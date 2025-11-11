@@ -3,6 +3,7 @@ HOW TO RUN:
 - Make sure that you're in the "manimations" folder
 - install flask in the same virtual environment (I used "uv install flask")
 - Clone the repository from http://github.com/adwi225/FBD/
+- MAKE SURE that you have manimations/FBD/fbd-web-editor/ directory structure. if the FBD folder is not there it won't work!
 - run app.py and open the browser window it gives you (localhost, in this version of the app)
 - Enter your vectors and press the Submit Arrows button to generate a free-body diagram
 - in this version: to submit new arrows you need to reload the page.
