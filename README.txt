@@ -1,3 +1,13 @@
+HOW TO RUN:
+- install manim using the instructions here: https://docs.manim.community/en/stable/installation/uv.html
+- Make sure that you're in the "manimations" folder
+- install flask in the same virtual environment (I used "uv install flask")
+- Clone the repository from http://github.com/adwi225/FBD/
+- run app.py and open the browser window it gives you (localhost, in this version of the app)
+- Enter your vectors and press the Submit Arrows button to generate a free-body diagram
+- in this version: to submit new arrows you need to reload the page.
+
+
 Assumptions:
     If an instance of the Vec class is created using the (magnitude,angle) convention, it is assumed that the angle is measured in relation to the 
     +x-axis.
