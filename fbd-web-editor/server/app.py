@@ -79,16 +79,12 @@ def update_arrows():
                 else:
                     arrow_strs.append(f"{a[0]},{a[1]}")
             arrows_arg = ";".join(arrow_strs)
-
-            # Set working directory to project root so Manim outputs to correct media directory
-            project_root = Path(__file__).resolve().parents[3]
             
             proc = subprocess.run(
                 [sys.executable, str(RENDER_SCRIPT), "--arrows", arrows_arg],
                 capture_output=True,
                 text=True,
-                timeout=120,
-                cwd=str(project_root),
+                timeout=120
             )
 
             # Locate the most recent rendered image for the scene.
@@ -108,13 +104,27 @@ def update_arrows():
                 'stdout': proc.stdout,
                 'stderr': proc.stderr,
             }
+            
+            # Add debugging info
+            app.logger.info(f"Images directory: {images_dir}")
+            app.logger.info(f"Images directory exists: {images_dir.exists()}")
+            if images_dir.exists():
+                all_files = list(images_dir.iterdir())
+                app.logger.info(f"Files in directory: {all_files}")
+            
             if rendered_file:
+                app.logger.info(f"Found rendered file: {rendered_file}")
                 # Convert absolute path to relative path from MEDIA_DIR for serving
                 try:
                     rel_path = rendered_file.relative_to(MEDIA_DIR)
                     resp['rendered_image'] = str(rel_path)
+                    app.logger.info(f"Relative path for serving: {rel_path}")
                 except ValueError:
                     resp['rendered_image'] = str(rendered_file)
+                    app.logger.warning(f"Could not make relative path, using absolute: {rendered_file}")
+            else:
+                app.logger.error("No rendered file found!")
+                resp['error'] = 'No image was generated'
 
             # If the renderer failed, return 500 so client knows there was an error during render.
             status = 200 if proc.returncode == 0 else 500
