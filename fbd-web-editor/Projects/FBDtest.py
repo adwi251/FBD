@@ -6,6 +6,11 @@ from manim import *
 #uv run manim checkhealth
 #manim -pqp "./Projects/FBDtest.py" FBD "./Projects/FBDarrows.txt"
 
+#uv run python3 ./fbd-web-editor/server/app.py
+#or
+#source .venv/bin/activate
+#python3 ./fbd-web-editor/server/app.py
+
 # change config for numberplane
 # default values for x-axis and y-axis range are [-7.11, 7,11] and [-4,4], respectively
 # this is, in my professional opinion, very dumb, so let's change that to [-20,20] for both
