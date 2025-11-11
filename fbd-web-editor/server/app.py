@@ -80,11 +80,15 @@ def update_arrows():
                     arrow_strs.append(f"{a[0]},{a[1]}")
             arrows_arg = ";".join(arrow_strs)
 
+            # Set working directory to project root so Manim outputs to correct media directory
+            project_root = Path(__file__).resolve().parents[3]
+            
             proc = subprocess.run(
                 [sys.executable, str(RENDER_SCRIPT), "--arrows", arrows_arg],
                 capture_output=True,
                 text=True,
                 timeout=120,
+                cwd=str(project_root),
             )
 
             # Locate the most recent rendered image for the scene.
