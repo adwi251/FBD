@@ -106,11 +106,14 @@ def update_arrows():
             }
             
             # Add debugging info
+            app.logger.info(f"Render stdout: {proc.stdout}")
+            app.logger.info(f"Render stderr: {proc.stderr}")
             app.logger.info(f"Images directory: {images_dir}")
             app.logger.info(f"Images directory exists: {images_dir.exists()}")
             if images_dir.exists():
                 all_files = list(images_dir.iterdir())
                 app.logger.info(f"Files in directory: {all_files}")
+                app.logger.info(f"Number of files: {len(all_files)}")
             
             if rendered_file:
                 app.logger.info(f"Found rendered file: {rendered_file}")
