@@ -48,10 +48,15 @@ def run_manim(path: Path = OUT_PATH):
 
     script_dir = Path(__file__).resolve().parent
     fbd_test_path = script_dir / "FBDtest.py"
+    
+    # Find project root (3 levels up from this script)
+    project_root = script_dir.parent.parent.parent
+    media_dir = project_root / "media"
+    
     if manim_bin.endswith("manim"):
-        cmd = [manim_bin, "-qp", str(fbd_test_path), "FBD"]
+        cmd = [manim_bin, "-qp", "--media_dir", str(media_dir), str(fbd_test_path), "FBD"]
     else:
-        cmd = [manim_bin, str(fbd_test_path), "FBD"]
+        cmd = [manim_bin, "--media_dir", str(media_dir), str(fbd_test_path), "FBD"]
 
     print("Running:", " ".join(cmd))
     env = dict(**os.environ)
