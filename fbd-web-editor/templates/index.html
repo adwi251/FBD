@@ -16,12 +16,11 @@
             <button type="submit">Submit Arrows</button>
         </form>
         <div id="responseMessage"></div>
-        <div id="imagePreview">
-            <div id="loadingIndicator" style="display: none;">
-                Rendering diagram...
-            </div>
-            <div id="previewContainer">
-                <!--image displayed here-->
+        <div id="imageContainer" style="margin-top: 20px; text-align: center;">
+            <img id="renderedImage" style="max-width: 100%; max-height: 600px; display: none; border: 1px solid #ccc; padding: 10px;">
+            <div style="margin-top: 10px;">
+                <button id="saveButton" type="button">Save Image</button>
+                <button id="resetButton" type="button" style="margin-left: 10px;">Reset</button>
             </div>
         </div>
     </div>
