@@ -2,6 +2,8 @@ import sys
 import os
 import numpy as np
 from manim import *
+from manim import config
+config["disable_caching"] = True
 #uv run manim checkhealth
 
 #uv run python3 ./fbd-web-editor/server/app.py
